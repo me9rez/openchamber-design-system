@@ -35,6 +35,7 @@ demo/
 docs/                     ← README 用的预览图
 scripts/verify.mjs        ← 无依赖自检
 licenses/                 ← 两个字体的 OFL 1.1 原文
+packages/unocss-preset/   ← 同一套 token 的 UnoCSS 预设（npm 包，读 ../../tokens，不存副本）
 ```
 
 ## 看
@@ -78,6 +79,35 @@ node scripts/verify.mjs
 | 动效 | 弹簧编译成 `linear()`：弹层 251ms、布局 294ms、关闭 110ms |
 
 完整版见 `DESIGN.md`。
+
+## 装成 UnoCSS 预设
+
+同一套 token 也打成了 UnoCSS 预设，`packages/unocss-preset/`：
+
+```ts
+// uno.config.ts
+import { defineConfig } from 'unocss';
+import { presetOpenChamber } from 'unocss-preset-openchamber';
+
+export default defineConfig({ presets: [presetOpenChamber()] }); // 已内置 presetWind4
+```
+
+```html
+<html data-theme="vercel-dark">  <!-- 四套主题随属性切换，不需要重编译 -->
+```
+
+给的是语义色板（`bg-surface-elevated`、`text-muted-foreground`）、档位（`rounded-md` = 7px、
+`text-ui-label` = 13.5px/1.2、`shadow-raised`）和一套量过的组件 shortcut（`oc-btn-primary` 32px/r7、
+`oc-trigger` 28px、`oc-field` 32px、`oc-seg`、`oc-stepper` 32px/±36、`oc-tile`、`oc-glass-popover`）。
+
+```bash
+cd packages/unocss-preset
+npm i && npm test        # 19 条断言，跑真实 UnoCSS 生成器
+npm run example          # 编译出 example/index.html 的 CSS，双击看实物
+```
+
+`tokens/*.json` 是唯一数据源，预设的 `scripts/gen-themes.mjs` 直接读它——改 token 只需改一处。
+还没发到 npm。
 
 ## 用到自己项目
 

@@ -94,6 +94,39 @@ check('fonts.css 内嵌两个字体', () => {
   return 'Inter + Geist Mono';
 });
 
+console.log('\npackages/unocss-preset');
+const pkgDir = join(root, 'packages', 'unocss-preset');
+for (const rel of [
+  'package.json', 'src/index.ts', 'scripts/gen-themes.mjs', 'scripts/build-example.mjs',
+  'test/preset.test.mjs', 'example/index.html', 'tsdown.config.ts', 'README.md', 'NOTICE.md',
+]) check(rel, () => { assert(existsSync(join(pkgDir, rel)), '缺失'); });
+
+check('package.json 与仓库对得上', () => {
+  const pkg = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8'));
+  assert(pkg.name === 'unocss-preset-openchamber', `name 是 ${pkg.name}`);
+  assert(pkg.repository?.directory === 'packages/unocss-preset', 'repository.directory 没指向子目录');
+  assert(pkg.peerDependencies?.['@unocss/core'], '缺 @unocss/core peer');
+  assert(pkg.dependencies?.['@unocss/preset-wind4'], '没依赖 preset-wind4');
+  return `${pkg.name}@${pkg.version}`;
+});
+
+check('token 单一数据源', () => {
+  // gen-themes 必须读仓库根的 tokens/，不许在包里留副本
+  const gen = readFileSync(join(pkgDir, 'scripts', 'gen-themes.mjs'), 'utf8');
+  assert(gen.includes("'..', '..', 'tokens'"), 'gen-themes 没读 ../../tokens');
+  assert(!existsSync(join(pkgDir, 'themes')), '包里还有 themes/ 副本');
+  return '读 ../tokens';
+});
+
+check('组件 shortcut 齐备', () => {
+  const src = readFileSync(join(pkgDir, 'src', 'index.ts'), 'utf8');
+  const need = ['oc-btn-primary', 'oc-btn-ghost', 'oc-trigger', 'oc-field', 'oc-seg', 'oc-stepper',
+    'oc-tile', 'oc-glass-popover', 'oc-label'];
+  const missing = need.filter((k) => !src.includes(`'${k}'`));
+  assert(missing.length === 0, `缺 ${missing.join(', ')}`);
+  return `${need.length} 条`;
+});
+
 console.log('\n隐私');
 check('没有本机路径', () => {
   // 通用形态，不写死用户名——脚本自己也不带本机痕迹
@@ -106,7 +139,7 @@ check('没有本机路径', () => {
       if (join(dir, e.name) === join(root, 'scripts', 'verify.mjs')) continue;
       const rel = join(dir, e.name);
       if (e.isDirectory()) { walk(rel); continue; }
-      if (!/\.(md|html|css|mjs|json|txt)$/.test(e.name)) continue;
+      if (!/\.(md|html|css|mjs|ts|json|txt)$/.test(e.name)) continue;
       const text = readFileSync(rel, 'utf8');
       if (SUSPECT.some((s) => text.includes(s))) hits.push(rel.replace(root, '.'));
     }
