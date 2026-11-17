@@ -19,9 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Design language, theme JSON data and component measurements are extracted from
-openchamber (https://github.com/openchamber/openchamber), MIT License.
-Bundled fonts: Inter and Geist Mono under SIL OFL 1.1 — see NOTICE.md and licenses/.
