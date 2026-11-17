@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenChamber Design System — 示例</title>
+<link rel="stylesheet" href="assets/fonts.css">
+<style>
+/* ---------- tokens: 取自 openchamber-DESIGN.md ---------- */
+:root, :root[data-theme="dark"] {
+  --bg:#120f0e; --fg:#ebe7dc; --muted:#0e0c0b; --muted-fg:#9a978d;
+  --elevated:#1b1918; --subtle:#171616;
+  --primary:#da7c47; --primary-hover:#eb8c57; --on-primary:#1a0f07;
+  --border:#242323bf; --border-hover:#504e4c;
+  --hover:#ffffff0f; --active:#ffffff1a; --selection:#c8c6c52b;
+  --error:#da5b4a; --warning:#c67f13; --success:#76ad4f; --info:#479fe6;
+  --user-bubble:#2d1c12; --link:#5d99a9; --ic:#99b985; --ic-bg:#171616;
+  --kw:#34983a; --str:#d58373; --num:#279e93; --fnc:#78a952; --typ:#479cb1; --cmt:#7d917d;
+  --add:#4d934e; --rm:#e0605c;
+  --edge:color-mix(in srgb, var(--fg) 16%, transparent);
+  --ring-dark:rgba(0,0,0,.6);
+  --lit:rgba(255,255,255,.07);
+  --sh-button: inset 0 1px 0 var(--lit), 0 0 0 .5px var(--edge), 0 0 0 1px var(--ring-dark), 0 1px 1.5px rgba(0,0,0,.45);
+  --sh-raised: inset 0 1px 0 var(--lit), 0 0 0 .5px var(--edge), 0 0 0 1px var(--ring-dark), 0 1px 2px -.5px rgba(0,0,0,.5), 0 4px 10px -2px rgba(0,0,0,.55);
+  --sh-floating: inset 0 1px 0 var(--lit), 0 0 0 .5px var(--edge), 0 0 0 1px var(--ring-dark), 0 1px 2px -.5px rgba(0,0,0,.5), 0 4px 10px -2px rgba(0,0,0,.55), 0 14px 28px -6px rgba(0,0,0,.6);
+  --glass-op:.62; --glass-blur:22px;
+}
+:root[data-theme="light"] {
+  --bg:#fdfcfa; --fg:#262521; --muted:#f7f6f4; --muted-fg:#696960;
+  --elevated:#f3f2f0; --subtle:#f0efec;
+  --primary:#b35017; --primary-hover:#9a4310; --on-primary:#fffaf5;
+  --border:#e5e1debf; --border-hover:#cbc7c2;
+  --hover:#0000000a; --active:#00000014; --selection:#26252120;
+  --error:#b7493f; --warning:#886914; --success:#517734; --info:#2c6ebd;
+  --user-bubble:#f3e9e3; --link:#2d7d8c; --ic:#32613c; --ic-bg:#ecebe7;
+  --kw:#15764e; --str:#c25f4b; --num:#177b8f; --fnc:#4e8b18; --typ:#0e8294; --cmt:#6c826c;
+  --add:#1f8a36; --rm:#c4413b;
+  --edge:color-mix(in srgb, var(--fg) 14%, transparent);
+  --ring-dark:rgba(0,0,0,.10);
+  --lit:rgba(255,255,255,.9);
+  --sh-button: inset 0 1px 0 var(--lit), 0 0 0 .5px var(--ring-dark), 0 1px 1.5px rgba(0,0,0,.08);
+  --sh-raised: inset 0 1px 0 var(--lit), 0 0 0 .5px var(--ring-dark), 0 1px 2px -.5px rgba(0,0,0,.06), 0 4px 10px -2px rgba(0,0,0,.07);
+  --sh-floating: inset 0 1px 0 var(--lit), 0 0 0 .5px var(--ring-dark), 0 1px 2px -.5px rgba(0,0,0,.08), 0 4px 10px -2px rgba(0,0,0,.11), 0 14px 28px -6px rgba(0,0,0,.12);
+  --glass-op:.95; --glass-blur:26px;
+}
+/* ---------- 字体：Inter（UI）+ Geist Mono（代码），woff2 内嵌，离线可用 ---------- */
+:root {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Microsoft YaHei UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, "Cascadia Mono", "Microsoft YaHei UI", monospace;
+}
+/* tile 色阶：把文字色混进下层 —— 深浅两套通用 */
+.tile  { background: color-mix(in srgb, var(--fg) 4%,   transparent); }
+.inset { background: color-mix(in srgb, var(--fg) 6%,   transparent); }
+.tile-hover:hover { background: color-mix(in srgb, var(--fg) 7%, transparent); }
+
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-sans);
+  font-size:14px; font-weight:400; line-height:1.45;
+  -webkit-font-smoothing:auto;
+}
+.mono { font-family: var(--font-mono); }
+.muted { color: var(--muted-fg); }
+a { color: var(--link); text-decoration:none; }
+
+/* ---------- 页面自身的 chrome ---------- */
+.topbar {
+  display:flex; align-items:center; gap:12px; padding:16px 24px;
+  border-bottom:.5px solid var(--border); position:sticky; top:0;
+  background:var(--bg); z-index:5;
+}
+.topbar h1 { font-size:15px; font-weight:600; margin:0; letter-spacing:.01em; }
+.topbar .tag { font-size:12.5px; color:var(--muted-fg); }
+.topbar .spacer { flex:1; }
+main { padding:0 24px 64px; max-width:1080px; }
+section { padding:28px 0; border-bottom:.5px solid var(--border); scroll-margin-top:64px; }
+section:last-child { border-bottom:0; }
+.eyebrow { font-size:12.5px; color:var(--muted-fg); margin:0 0 4px; }
+h2 { font-size:15px; font-weight:600; margin:0 0 6px; }
+.lede { font-size:13.5px; color:var(--muted-fg); margin:0 0 20px; max-width:72ch; }
+.grid { display:grid; gap:14px; }
+
+/* ---------- 按钮契约（button-variants.ts：default h32/r7，sm h28，xs h24/r5，lg h36/r9） ---------- */
+.btn {
+  height:32px; padding:0 12px; border-radius:7px; border:0; cursor:pointer;
+  display:inline-flex; align-items:center; gap:7px; white-space:nowrap;
+  font:inherit; font-size:13.5px; font-weight:500; color:var(--fg);
+  background:var(--bg); box-shadow:var(--sh-button);
+  transition: background 150ms ease, color 150ms ease, transform 60ms ease;
+}
+.btn.sm { height:28px; padding:0 10px; }
+.btn.lg { height:36px; padding:0 16px; border-radius:9px; }
+.btn.xs { height:24px; padding:0 8px; font-size:12px; border-radius:5px; }
+.btn.icon { width:32px; padding:0; justify-content:center; }
+.btn.icon.sm { width:28px; }
+.btn:hover { background:var(--hover); }
+.btn:active { transform: translateY(.5px); }
+.btn.primary { background:var(--primary); color:var(--on-primary); }
+.btn.primary:hover { background:var(--primary-hover); }
+.btn.destructive { color:var(--error); background:color-mix(in srgb, var(--error) 13%, var(--bg)); box-shadow:var(--sh-button), inset 0 0 0 .5px color-mix(in srgb, var(--error) 30%, transparent); }
+.btn.outline { background:var(--bg); }
+.btn.secondary { background:color-mix(in srgb, var(--fg) 8%, transparent); }
+.btn.ghost { background:transparent; box-shadow:none; color:var(--muted-fg); }
+.btn.ghost:hover { background:var(--hover); color:var(--fg); }
+.btn.chip {
+  height:24px; padding:0 9px; border-radius:9999px; font-size:12.5px;
+  background:color-mix(in srgb, var(--fg) 5%, transparent); box-shadow:none; color:var(--muted-fg);
+}
+.btn.chip[aria-pressed="true"] { background:var(--selection); color:var(--fg); box-shadow:var(--sh-button); }
+.btn.link { background:transparent; box-shadow:none; color:var(--link); padding:0; height:auto; }
+
+.demo-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; min-height:32px; margin-bottom:18px; }
+.demo-row:last-child { margin-bottom:0; }
+/* ---------- 输入框：深色抬起 / 浅色压进页面 ---------- */
+.field {
+  height:32px; width:100%; padding:0 10px; border:0; border-radius:7px;
+  background:var(--elevated); color:var(--fg); font:inherit; font-size:13.5px;
+  box-shadow:var(--sh-raised);
+}
+:root[data-theme="light"] .field { background:var(--bg); box-shadow: inset 0 1px 2px rgba(0,0,0,.07), 0 0 0 .5px var(--ring-dark); }
+.field::placeholder { color:var(--muted-fg); }
+.field.focus { box-shadow: inset 0 1px 0 var(--lit), 0 0 0 1px var(--primary), 0 1px 2px rgba(0,0,0,.3); }
+.field.invalid { box-shadow: inset 0 1px 0 var(--lit), 0 0 0 1px var(--error), 0 1px 2px rgba(0,0,0,.3); }
+
+/* ---------- 下拉触发器 28px ---------- */
+.trigger {
+  font-weight:500; height:28px; padding:0 10px; border:0; border-radius:7px; cursor:pointer;
+  background:var(--bg); box-shadow:var(--sh-button); color:var(--fg);
+  font:inherit; font-size:13px; display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+}
+:root[data-theme="light"] .trigger { background:var(--bg); }
+.trigger:hover { background:var(--hover); }
+.trigger svg { opacity:.5; }
+
+/* ---------- 分段选择 = SettingsChipGroup：凹槽 fg 4% + p2/gap2，选中回画布色再抬起 ---------- */
+.seg { display:inline-flex; gap:2px; padding:2px; border-radius:9px;
+  background:color-mix(in srgb, var(--fg) 4%, transparent);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.16); }
+.seg button { height:28px; padding:0 10px; border:0; border-radius:7px; cursor:pointer;
+  background:transparent; color:var(--muted-fg); font:inherit; font-size:13.5px; font-weight:400; }
+.seg button:hover { color:var(--fg); }
+.seg button[aria-pressed="true"] { background:var(--elevated); color:var(--fg); box-shadow:var(--sh-button); }
+:root[data-theme="light"] .seg button[aria-pressed="true"] { background:var(--bg); }
+
+/* ---------- 设置页控件（SettingsSection.tsx / number-input.tsx） ---------- */
+.set-title { font-size:14px; font-weight:600; line-height:1.2; margin:0 0 16px; }
+.set-cols { display:grid; grid-template-columns:1fr 1fr; column-gap:40px; }
+.set-stack { display:grid; row-gap:24px; align-content:start; }
+.set-field { display:flex; flex-direction:column; gap:8px; min-width:0; }
+.set-label { font-size:13.5px; font-weight:400; line-height:1.2; margin:0; display:flex; align-items:center; gap:6px; }
+.set-label svg { color:var(--muted-fg); }
+.set-ctl { display:flex; align-items:center; gap:8px; min-width:0; max-width:24rem; }
+.icon-btn { width:32px; height:32px; flex:0 0 32px; display:grid; place-items:center; border:0; border-radius:7px;
+  background:transparent; color:var(--muted-fg); cursor:pointer; }
+.icon-btn:hover { color:var(--fg); background:var(--hover); }
+/* NumberInput：h32、r9、surface.elevated 底 + 1px border，± 各 36px，内侧一条分隔线 */
+.stepper { display:flex; align-items:stretch; height:32px; flex:0 0 auto; border-radius:9px;
+  background:var(--elevated); box-shadow:0 0 0 1px var(--border); overflow:hidden; }
+.stepper button { width:36px; flex:0 0 36px; display:grid; place-items:center; border:0; background:transparent;
+  color:var(--muted-fg); cursor:pointer; padding:0; }
+.stepper button:hover { color:var(--fg); }
+.stepper button:first-child { box-shadow: inset -1px 0 0 var(--border); }
+.stepper button:last-child { box-shadow: inset 1px 0 0 var(--border); }
+.stepper .v { flex:1; min-width:calc(5.75rem + 5ch); display:grid; place-items:center; font-size:13.5px; font-variant-numeric: tabular-nums; }
+.unit { font-size:12.5px; color:var(--muted-fg); flex:0 0 auto; }
+@media (max-width:760px) { .set-cols { grid-template-columns:1fr; } .set-stack + .set-stack { margin-top:24px; } }
+
+
+/* ---------- 坑：状态横幅无边框 ---------- */
+.banner { padding:9px 11px; border-radius:9px; font-size:13px; display:flex; gap:8px; align-items:flex-start; }
+.banner.err { background:color-mix(in srgb, var(--error) 14%, transparent);  color:var(--error); }
+.banner.warn{ background:color-mix(in srgb, var(--warning) 16%, transparent);color:var(--warning); }
+.banner.ok  { background:color-mix(in srgb, var(--success) 14%, transparent);color:var(--success); }
+.banner.info{ background:color-mix(in srgb, var(--info) 14%, transparent);   color:var(--info); }
+
+/* ---------- 玻璃浮层 ---------- */
+.glass {
+  background: color-mix(in srgb, var(--elevated) calc(var(--glass-op) * 100%), transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
+  border-radius:12px; box-shadow:var(--sh-floating); padding:5px;
+}
+.menu-item { font-weight:500; display:flex; align-items:center; gap:8px; height:28px; padding:0 8px 0 6px;
+  border-radius:7px; font-size:13px; cursor:default; }
+.menu-item:hover { background:var(--hover); }
+.menu-item .kbd { margin-left:auto; color:var(--muted-fg); font-size:12px; }
+
+/* ---------- app 模拟 ---------- */
+.app {
+  display:flex; border-radius:12px; overflow:hidden; background:var(--bg);
+  box-shadow:var(--sh-floating); min-height:430px;
+}
+.side { width:216px; flex:0 0 216px; background:var(--muted); padding:10px 8px; display:flex; flex-direction:column; gap:2px; }
+.side .brand { display:flex; align-items:center; gap:8px; padding:4px 6px 10px; font-size:13px; font-weight:600; }
+.side .brand .mark { width:18px; height:18px; border-radius:6px; background:var(--primary); color:var(--on-primary);
+  display:grid; place-items:center; font-size:11px; font-weight:700; }
+.cap { font-size:12.5px; color:var(--muted-fg); padding:12px 6px 4px; }  /* 裸词 caption，最大间距在上 */
+.row { display:flex; align-items:center; gap:8px; height:28px; padding:0 6px; border-radius:7px;
+  font-size:13px; cursor:default; position:relative; }
+.row:hover { background:var(--hover); }
+.row[aria-selected="true"] { background:var(--selection); }
+.row svg { color: var(--muted-fg); flex: 0 0 13px; }
+.row .t { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.row .acts { margin-left:auto; display:flex; gap:2px; opacity:0; transition:opacity 150ms ease; }
+.row:hover .acts { opacity:1; }
+.dot { width:6px; height:6px; border-radius:9999px; flex:0 0 6px; }
+.dot.info { background:var(--info); animation: blink 1s steps(2, jump-none) infinite; }
+@keyframes blink { 50% { opacity:.35; } }
+
+.chat { flex:1; display:flex; flex-direction:column; min-width:0; background:var(--chat, var(--bg)); }
+.chat-scroll { flex:1; padding:18px 20px 8px; display:flex; flex-direction:column; gap:16px; overflow:hidden; }
+.msg-user { align-self:flex-end; max-width:78%; background:var(--user-bubble);
+  box-shadow:0 0 0 .5px color-mix(in srgb, var(--primary) 26%, transparent);
+  border-radius:11px; padding:8px 11px; font-size:13.5px; }
+.msg-ai { font-size:14px; line-height:1.5; max-width:66ch; }
+.msg-ai p { margin:0 0 8px; }
+code.inline { background:var(--ic-bg); color:var(--ic); border-radius:4px; padding:1px 4px;
+  font-family: var(--font-mono); font-size:12px; }
+pre.code { margin:8px 0; padding:10px; border-radius:9px; overflow:auto;
+  background:color-mix(in srgb, var(--fg) 4%, transparent); font-size:12px; line-height:1.5;
+  font-family: var(--font-mono); }
+/* 活动行：name muted，argument 亮 */
+.activity { display:flex; align-items:center; gap:7px; font-size:13px; color:var(--muted-fg); }
+.activity b { font-weight:500; color:var(--fg); }
+.meta { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted-fg); }
+.meta .acts { opacity:0; transition:opacity 150ms ease; display:flex; gap:2px; }
+.meta:hover .acts { opacity:1; }
+
+/* composer：不透明 + 同样的光 + sheen */
+.composer { margin:6px 12px 12px; border-radius:12px; background:var(--elevated);
+  box-shadow:var(--sh-floating); padding:9px 10px 7px; }
+.composer .ph { color:var(--muted-fg); font-size:13.5px; padding:2px 2px 10px; }
+.composer .bar { display:flex; align-items:center; gap:6px; }
+.composer .bar .spacer { flex:1; }
+
+/* spinner：8 根条，四步一秒 */
+.spinner { width:12px; height:12px; position:relative; animation: spin 1s steps(8) infinite; }
+.spinner i { position:absolute; left:5px; top:0; width:2px; height:4px; border-radius:1px;
+  background:var(--muted-fg); transform-origin:1px 6px;
+  transform: rotate(calc(var(--i) * 45deg)); opacity: calc(.25 + var(--i) * .09); }
+@keyframes spin { 0% { transform:rotate(0); } 100% { transform:rotate(360deg); } }
+.busy::after { content:"···"; color:var(--muted-fg); letter-spacing:.1em; }
+
+/* ---------- 色板 ---------- */
+.sw { display:flex; gap:10px; align-items:center; font-size:12.5px; }
+.sw i { width:30px; height:30px; border-radius:7px; flex:0 0 30px; box-shadow:var(--sh-button); }
+.sw .n { font-size:12.5px; white-space:nowrap; }
+.sw .h { color:var(--muted-fg); font-size:12px; font-family: var(--font-mono); }
+.swatches { display:grid; grid-template-columns:repeat(auto-fill, minmax(158px, 1fr)); gap:12px; }
+
+/* ---------- 层 ---------- */
+.levels { display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; }
+.level { padding:16px 14px; border-radius:9px; text-align:center; font-size:12.5px; }
+.level b { display:block; font-size:13px; margin-bottom:2px; }
+
+/* ---------- 类型尺 ---------- */
+.type-row { display:flex; align-items:baseline; gap:14px; padding:7px 0; border-bottom:.5px solid var(--border); }
+.type-row .k { width:120px; color:var(--muted-fg); font-size:12px; font-family:var(--font-mono); flex:0 0 120px; }
+.type-row .v { flex:1; }
+
+ul.check { margin:0; padding-left:18px; font-size:13.5px; color:var(--muted-fg); }
+ul.check li { margin:3px 0; }
+ul.check b { color:var(--fg); font-weight:500; }
+.split { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+@media (max-width:760px) { .split, .levels { grid-template-columns:1fr; } .side { display:none; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>OpenChamber Design System</h1>
+  <span class="tag">从 openchamber/openchamber 的 agent skills + design-system.css 提取</span>
+  <span class="spacer"></span>
+  <button class="btn ghost sm" id="themeBtn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+    <span id="themeLabel">浅色</span>
+  </button>
+</div>
+
+<main>
+
+<!-- ============ 1. app 模拟 ============ -->
+<section>
+  <p class="eyebrow">01 · 一眼看整体</p>
+  <h2>应用模拟</h2>
+  <p class="lede">侧栏取 <span class="mono">surface.muted</span>，聊天区是最亮的画布；控件立起（hairline + lit top line + 短阴影），卡片平躺只靠色阶；用户气泡带主题暖调，颜色只用来表示状态。</p>
+
+  <div class="app">
+    <aside class="side">
+      <div class="brand"><span class="mark">O</span> OpenChamber</div>
+
+      <div class="cap">Chats</div>
+      <div class="row" aria-selected="true">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2v4l5-4h5a2 2 0 0 0 2-2z"/></svg>
+        <span class="t">压一份 DESIGN.md 出来</span>
+        <span class="acts">
+          <button class="btn ghost xs" title="置顶"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5M9 3h6l-1 8 4 3H6l4-3z"/></svg></button>
+          <button class="btn ghost xs" title="更多"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+        </span>
+      </div>
+      <div class="row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2v4l5-4h5a2 2 0 0 0 2-2z"/></svg><span class="t">移动端 header 漂移</span></div>
+      <div class="row"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2v4l5-4h5a2 2 0 0 0 2-2z"/></svg><span class="t">picker 加 Ctrl+N</span></div>
+
+      <div class="cap">In work</div>
+      <div class="row"><span class="dot info"></span><span class="t">theme tokens 重构</span><span class="acts mono" style="font-size:11px">2m</span></div>
+      <div class="row"><span class="dot" style="background:var(--warning)"></span><span class="t">等你批准命令</span></div>
+    </aside>
+
+    <div class="chat">
+      <div class="chat-scroll">
+        <div class="msg-user">用 DESIGN.md 写个 html 示例我看看</div>
+
+        <div class="msg-ai">
+          <p>按规范出来的样子。深度只有三级：可按的立起、布局平躺、浮层玻璃加光。</p>
+          <p>主色是 <code class="inline">--primary</code>，只表示"去做"；选中态走 <code class="inline">--selection</code>，两者独立。</p>
+          <div class="activity">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
+            <span>Shell</span> <b class="mono">bun run check:changed</b>
+            <span class="busy" style="font-size:12px"></span>
+          </div>
+          <div class="activity" style="color:var(--muted-fg)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>Read</span> <b class="mono" style="color:var(--muted-fg)">你…/notes/openchamber-DESIGN.md</b>
+          </div>
+          <pre class="code"><span style="color:var(--kw)">const</span> <span style="color:var(--fnc)">depth</span> = {
+  <span style="color:var(--typ)">button</span>: <span style="color:var(--str)">'control stands up'</span>,
+  <span style="color:var(--typ)">layout</span>: <span style="color:var(--str)">'lies flat, set off by tone'</span>,
+  <span style="color:var(--typ)">floating</span>: <span style="color:var(--str)">'glass plus light'</span>,
+}; <span style="color:var(--cmt)">// 8px 圆角档只有 4/7/9/12</span></pre>
+          <div class="meta">
+            <span>Opus 4.5</span><span>·</span><span>build</span><span>·</span><span>1m 12s</span>
+            <span class="acts">
+              <button class="btn ghost xs" title="复制"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg></button>
+              <button class="btn ghost xs" title="更多"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+            </span>
+          </div>
+        </div>
+
+        <div class="activity" style="margin-top:auto">
+          <span class="spinner"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i><i style="--i:5"></i><i style="--i:6"></i><i style="--i:7"></i></span>
+          <span>Thinking</span><span class="busy" style="font-size:12px"></span>
+        </div>
+      </div>
+
+      <div class="composer">
+        <div class="ph">问点什么，或输入 / 用命令…</div>
+        <div class="bar">
+          <button class="btn ghost sm icon" title="附件"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M21 12.8A8.5 8.5 0 1 1 7 6.3L14 3"/><path d="M3 21l6-6"/></svg></button>
+          <button class="trigger">Opus 4.5
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <button class="trigger" style="padding:0 8px">build
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <span class="spacer"></span>
+          <button class="btn ghost sm icon" title="更多"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+          <button class="btn primary sm icon" title="发送"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. 颜色 ============ -->
+<section>
+  <p class="eyebrow">02 · Colors</p>
+  <h2>语义 token</h2>
+  <p class="lede">永不硬编码 hex。下面每格是从主题 JSON 读出来的实际值（切到浅色会整套换掉）。</p>
+  <div class="swatches" id="swatches"></div>
+  <div class="grid split" style="margin-top:20px">
+    <div>
+      <p class="muted" style="font-size:12.5px;margin:0 0 8px">颜色只表示状态</p>
+      <div class="banner info" style="margin-bottom:8px"><b style="font-weight:600">正在工作</b><span style="opacity:.9">info · 蓝</span></div>
+      <div class="banner ok" style="margin-bottom:8px"><b style="font-weight:600">已完成待读</b><span style="opacity:.9">success · 绿</span></div>
+      <div class="banner warn" style="margin-bottom:8px"><b style="font-weight:600">等你决定</b><span style="opacity:.9">warning · 黄</span></div>
+      <div class="banner err"><b style="font-weight:600">失败</b><span style="opacity:.9">error · 红</span></div>
+      <p class="muted" style="font-size:12.5px;margin:10px 0 0">四个横幅都没有边框——填充已经说明了语气。</p>
+    </div>
+    <div>
+      <p class="muted" style="font-size:12.5px;margin:0 0 8px">两个保留的染色 + 语法</p>
+      <div class="grid" style="gap:8px">
+        <div class="tile" style="padding:10px 12px;border-radius:9px">
+          <div style="font-size:12.5px;color:var(--muted-fg);margin-bottom:6px">用户气泡（主题暖调，不是状态）</div>
+          <div style="background:var(--user-bubble);border-radius:11px;padding:7px 10px;font-size:13px;box-shadow:0 0 0 .5px color-mix(in srgb, var(--primary) 26%, transparent)">这是用户自己说的话</div>
+        </div>
+        <div class="tile" style="padding:10px 12px;border-radius:9px;font-size:13px">
+          行内代码 <code class="inline">--selection</code> 有自己的色相，且必须避开 success 绿；链接是 <a href="#">markdown.link</a>。
+        </div>
+        <div class="tile mono" style="padding:10px 12px;border-radius:9px;font-size:12px;line-height:1.7">
+          <span style="color:var(--kw)">export</span> <span style="color:var(--kw)">const</span> <span style="color:var(--fnc)">tokens</span> = <span style="color:var(--num)">12</span>;<br>
+          <span style="color:var(--cmt)">// 注释 muted，字符串暖红</span><br>
+          <span style="color:var(--add)">+ added</span> &nbsp; <span style="color:var(--rm)">- removed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. 字体 ============ -->
+<section>
+  <p class="eyebrow">03 · Typography</p>
+  <h2>一档字号解决大部分界面</h2>
+  <p class="lede">Inter（界面）+ Geist Mono（代码），woff2 已内嵌进本文件，断网也能开；中文逐字回退到系统雅黑。UI 行高统一 <span class="mono">round(1.45em, 1px)</span>；标题类 1.2。</p>
+  <div>
+    <div class="type-row"><span class="k">ui-header 14/600</span><span class="v" style="font-size:14px;font-weight:600;line-height:1.2">Context panel</span></div>
+    <div class="type-row"><span class="k">ui-section 15</span><span class="v" style="font-size:15px">区块标题用这一档，比正文大一号</span></div>
+    <div class="type-row"><span class="k">markdown 14</span><span class="v" style="font-size:14px">正文。读起来密，但不许为了塞内容再降字号。</span></div>
+    <div class="type-row"><span class="k">ui-label 13.5</span><span class="v" style="font-size:13.5px">按钮、菜单项、列表行的文字</span></div>
+    <div class="type-row"><span class="k">meta 12.5</span><span class="v" style="font-size:12.5px;color:var(--muted-fg)">模型 · agent · 时长　（次要文字用 muted 全强度，绝不叠 /70）</span></div>
+    <div class="type-row" style="border-bottom:0"><span class="k">code 12</span><span class="v mono" style="font-size:12px">const depth = ['button','raised','floating']</span></div>
+  </div>
+</section>
+
+<!-- ============ 4. 控件 ============ -->
+<section>
+  <p class="eyebrow">04 · Components</p>
+  <h2>控件契约</h2>
+  <p class="lede">只有一套 Button：7 个变体 × 5 个尺寸，不许包 <span class="mono">ButtonSmall</span>；桌面下拉触发器一律 28px，表单输入与按钮 32px。</p>
+
+  <p class="muted" style="font-size:12.5px;margin:0 0 8px">变体 · 五个同高，chip / link 是紧凑档（居中，不顶对齐）</p>
+  <div class="demo-row">
+    <button class="btn primary">Primary</button>
+    <button class="btn outline">Outline</button>
+    <button class="btn secondary">Secondary</button>
+    <button class="btn ghost">Ghost</button>
+    <button class="btn destructive">Destructive</button>
+    <button class="btn chip" aria-pressed="true">Chip</button>
+    <button class="btn chip">Chip</button>
+    <button class="btn link">Link</button>
+  </div>
+
+  <div class="grid split">
+    <div>
+      <p class="muted" style="font-size:12.5px;margin:0 0 8px">尺寸 · 一行共用高度</p>
+      <div class="demo-row">
+        <button class="btn xs">xs 24</button>
+        <button class="btn sm">sm 28</button>
+        <button class="btn">default 32</button>
+        <button class="btn ghost sm icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+
+      <p class="muted" style="font-size:12.5px;margin:0 0 8px">输入框：深色抬起，浅色压进页面</p>
+      <div class="grid" style="gap:8px;margin-bottom:0">
+        <input class="field" placeholder="默认态 — oc-raised oc-field">
+        <input class="field focus" value="聚焦：亮自己的边，不画环">
+        <input class="field invalid" value="aria-invalid → 转红">
+      </div>
+      <p class="muted" style="font-size:12px;margin:8px 0 0">下方恒定留一行状态槽，空的也在——不靠撑高容器来显示消息。</p>
+    </div>
+
+    <div>
+      <p class="muted" style="font-size:12.5px;margin:0 0 8px">分段选择：凹槽 + 选中抬起</p>
+      <div class="demo-row" style="gap:10px">
+        <div class="seg">
+          <button aria-pressed="true">Dark</button>
+          <button>Light</button>
+          <button>System</button>
+        </div>
+        <button class="trigger">Composer
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </div>
+
+      <p class="muted" style="font-size:12.5px;margin:0 0 8px">Tile / tile-inset — 绝不 box in box</p>
+      <div class="tile" style="border-radius:9px;padding:12px;margin-bottom:18px">
+        <div style="font-size:13.5px;font-weight:600;margin-bottom:2px">Session totals</div>
+        <div style="font-size:12.5px;color:var(--muted-fg);margin-bottom:10px">tile 只比父级高一档色阶，没有边框</div>
+        <div style="display:flex;gap:8px">
+          <div class="inset" style="border-radius:7px;padding:8px 10px;flex:1">
+            <div class="mono" style="font-size:15px">13.7M</div>
+            <div style="font-size:12px;color:var(--muted-fg)">tokens</div>
+          </div>
+          <div class="inset" style="border-radius:7px;padding:8px 10px;flex:1">
+            <div class="mono" style="font-size:15px">42</div>
+            <div style="font-size:12px;color:var(--muted-fg)">turns</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="muted" style="font-size:12.5px;margin:0 0 8px">浮层：玻璃 + 光（背后模糊，贴触发器那条边不动）</p>
+      <div style="position:relative;height:150px">
+        <div class="tile" style="border-radius:9px;padding:12px;height:100%">
+          <div style="font-size:13px;color:var(--muted-fg)">下层内容</div>
+          <div style="margin-top:8px;font-size:13px">玻璃浮层后面应该能看出模糊，而不是一块实色。</div>
+        </div>
+        <div class="glass" style="position:absolute;right:10px;top:14px;width:196px">
+          <div class="menu-item"><span>Copy</span><span class="kbd">⌘C</span></div>
+          <div class="menu-item" style="background:var(--hover)"><span>Revert</span><span class="kbd">⌘Z</span></div>
+          <div class="menu-item"><span>Fork session</span></div>
+          <div class="menu-item" style="color:var(--error)"><span>Delete…</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. 设置面板 ============ -->
+<section>
+  <p class="eyebrow">05 · Settings</p>
+  <h2>设置面板复刻</h2>
+  <p class="lede">照 openchamber 的 <span class="mono">SettingsSection.tsx</span> + <span class="mono">number-input.tsx</span> 摆的：区块标题 14/600、字段标签 13.5/400 用正文色、标签到控件 8px、控件行 gap 8px 封顶 24rem、两列 40px、字段之间 24px。下拉 28px/r7，步进器 32px/r9 且 ± 各 36px。</p>
+
+  <div style="max-width:880px">
+    <h3 class="set-title">密度与字体</h3>
+    <div class="set-cols">
+      <div class="set-stack">
+
+        <div class="set-field">
+          <p class="set-label">界面字体</p>
+          <div class="set-ctl">
+            <button class="trigger" style="justify-content:space-between;min-width:104px;padding:0 10px">Inter
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.5"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <button class="icon-btn" title="重置"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4.5V10h5.5"/></svg></button>
+          </div>
+        </div>
+
+        <div class="set-field">
+          <p class="set-label">界面字体大小</p>
+          <div class="set-ctl">
+            <div class="stepper">
+              <button title="减"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+              <span class="v">100</span>
+              <button title="加"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+            </div>
+            <span class="unit">%</span>
+            <button class="icon-btn" title="重置"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4.5V10h5.5"/></svg></button>
+          </div>
+        </div>
+
+        <div class="set-field">
+          <p class="set-label">界面字重
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+          </p>
+          <div class="set-ctl">
+            <div class="seg">
+              <button aria-pressed="true">常规</button>
+              <button>均衡</button>
+              <button>加强</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="set-field">
+          <p class="set-label">编辑器字体大小</p>
+          <div class="set-ctl">
+            <div class="stepper">
+              <button title="减"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+              <span class="v">12</span>
+              <button title="加"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+            </div>
+            <span class="unit">px</span>
+            <button class="icon-btn" title="重置"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4.5V10h5.5"/></svg></button>
+          </div>
+        </div>
+
+        <div class="set-field">
+          <p class="set-label">间距密度</p>
+          <div class="set-ctl">
+            <div class="stepper">
+              <button title="减"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+              <span class="v">100</span>
+              <button title="加"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+            </div>
+            <span class="unit">%</span>
+            <button class="icon-btn" title="重置"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4.5V10h5.5"/></svg></button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="set-stack">
+
+        <div class="set-field">
+          <p class="set-label">代码字体</p>
+          <div class="set-ctl">
+            <button class="trigger" style="justify-content:space-between;min-width:120px;padding:0 10px">Geist Mono
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.5"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <button class="icon-btn" title="重置"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4.5V10h5.5"/></svg></button>
+          </div>
+        </div>
+
+        <div class="set-field">
+          <p class="set-label">聊天字体大小</p>
+          <div class="set-ctl">
+            <div class="stepper">
+              <button title="减"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+              <span class="v">100</span>
+              <button title="加"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+            </div>
+            <span class="unit">%</span>
+            <button class="icon-btn" title="重置"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4.5V10h5.5"/></svg></button>
+          </div>
+        </div>
+
+        <div class="set-field">
+          <p class="set-label">终端字体大小</p>
+          <div class="set-ctl">
+            <div class="stepper">
+              <button title="减"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+              <span class="v">14</span>
+              <button title="加"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+            </div>
+            <span class="unit">px</span>
+            <button class="icon-btn" title="重置"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4.5V10h5.5"/></svg></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:880px;margin-top:28px">
+    <h3 class="set-title">本地化</h3>
+    <div class="set-cols">
+      <div class="set-stack">
+        <div class="set-field">
+          <p class="set-label">语言
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+          </p>
+          <div class="set-ctl">
+            <button class="trigger" style="justify-content:space-between;min-width:104px;padding:0 10px">简体中文
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.5"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="set-stack">
+        <div class="set-field">
+          <p class="set-label">时间格式</p>
+          <div class="set-ctl">
+            <button class="trigger" style="justify-content:space-between;min-width:78px;padding:0 10px">自动
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.5"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="set-field">
+          <p class="set-label">一周起始日</p>
+          <div class="set-ctl">
+            <button class="trigger" style="justify-content:space-between;min-width:78px;padding:0 10px">自动
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.5"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. 深度 ============ -->
+<section>
+  <p class="eyebrow">06 · Elevation</p>
+  <h2>只有三级，剩下的靠色阶</h2>
+  <p class="lede">每级都是玻璃边压在半像素上：一条 hairline ring + 一条受光的顶线，深色主题在亮环外再加一圈暗环，因为单一环在暗底上要么消失要么发光。</p>
+  <div class="levels">
+    <div class="level" style="background:var(--bg);box-shadow:var(--sh-button)">
+      <b>button</b><span class="muted">可按的东西</span>
+    </div>
+    <div class="level" style="background:var(--elevated);box-shadow:var(--sh-raised)">
+      <b>raised</b><span class="muted">布局里的面：composer、侧面板</span>
+    </div>
+    <div class="level" style="background:color-mix(in srgb, var(--elevated) 92%, transparent);box-shadow:var(--sh-floating);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px)">
+      <b>floating</b><span class="muted">浮在布局之上：菜单、弹窗</span>
+    </div>
+  </div>
+  <div class="grid split" style="margin-top:20px">
+    <div class="tile" style="border-radius:9px;padding:12px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px">平躺 = 一个色阶</div>
+      <p class="muted" style="font-size:12.5px;margin:0 0 8px">卡片、列表块、分组都没有边框。tile 在它的父级上混 4% 文字色，所以同一个类在深浅两套、任意父级上都对。</p>
+      <div class="inset muted" style="border-radius:7px;padding:8px 10px;font-size:12.5px">tile-inset：再上一档（图标方块、pill、chip、keycap）</div>
+    </div>
+    <div style="background:var(--bg);border-radius:9px;padding:12px;box-shadow:var(--sh-raised)">
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px">圆角只有四档</div>
+      <div style="display:flex;gap:8px;align-items:flex-end;margin-top:10px">
+        <div class="inset" style="width:34px;height:34px;border-radius:4px;display:grid;place-items:center;font-size:11px">4</div>
+        <div class="inset" style="width:34px;height:34px;border-radius:7px;display:grid;place-items:center;font-size:11px">7</div>
+        <div class="inset" style="width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:11px">9</div>
+        <div class="inset" style="width:34px;height:34px;border-radius:12px;display:grid;place-items:center;font-size:11px">12</div>
+        <div class="inset" style="width:34px;height:34px;border-radius:9999px;display:grid;place-items:center;font-size:11px">∞</div>
+      </div>
+      <p class="muted" style="font-size:12px;margin:10px 0 0">控件几乎都是 9；tile 内小块 7；玻璃浮层与模态 12；chip、头像、状态点 ∞。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. 验收 ============ -->
+<section>
+  <p class="eyebrow">07 · Review</p>
+  <h2>完成前照着挠一遍</h2>
+  <ul class="check">
+    <li>每个 surface 守深度规则：<b>没有 box in box</b>，没有无意义的线。</li>
+    <li>交互不挪动没碰的东西；弹窗朝有空间的一侧开（本页的菜单是静态示意，没做翻转）。</li>
+    <li>没有 surface 把 header / tab / 工具栏 / 搜索堆成四行，没有工具栏换行。</li>
+    <li>控件贴内容；只有表单字段和画布铺满列。</li>
+    <li>图标在行内，行尽量读成一行；一行并排的图标共用一个尺寸。</li>
+    <li>区域不超过静止预算，颜色只表示状态。</li>
+    <li><b>浅色和深色两套都看过</b>——右上角切。</li>
+  </ul>
+</section>
+
+</main>
+
+<script>
+/* 色板：从当前主题的实际 CSS 变量读值，切换主题会重读 */
+const swatchDefs = [
+  ['surface.background','--bg'], ['surface.muted','--muted'], ['surface.elevated','--elevated'],
+  ['surface.subtle','--subtle'], ['surface.foreground','--fg'], ['surface.mutedForeground','--muted-fg'],
+  ['primary.base','--primary'], ['primary.hover','--primary-hover'],
+  ['interactive.border','--border'], ['interactive.hover','--hover'],
+  ['interactive.selection','--selection'],
+  ['status.error','--error'], ['status.warning','--warning'], ['status.success','--success'], ['status.info','--info'],
+  ['chat.userMessageBg','--user-bubble'],
+  ['markdown.link','--link'], ['markdown.inlineCode','--ic'],
+  ['syntax.keyword','--kw'], ['syntax.string','--str'], ['syntax.type','--typ'],
+  ['diff.added','--add'], ['diff.removed','--rm']
+];
+function hex(v){
+  // 从计算值反解成 hex，alpha 保留 <0-1> 后缀
+  const m = v.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/i);
+  const s = m ? null : v.match(/color\(srgb ([\d.]+) ([\d.]+) ([\d.]+)(?: \/ ([\d.]+))?\)/i);
+  if (!m && !s) return v;
+  const k = m ? 1 : 255;
+  const p = m || s;
+  const h = n => Math.round(+n * k).toString(16).padStart(2,'0');
+  const a = p[4] !== undefined ? Math.round(+p[4]*255).toString(16).padStart(2,'0') : '';
+  return '#' + h(p[1]) + h(p[2]) + h(p[3]) + (a && a !== 'ff' ? a : '');
+}
+function paint(){
+  // 自定义属性的计算值不会解析 color-mix，落到元素上取真实颜色
+  const probe = document.createElement('i');
+  probe.style.display = 'none';
+  document.body.appendChild(probe);
+  const read = v => { probe.style.backgroundColor = 'var(' + v + ')'; return getComputedStyle(probe).backgroundColor; };
+  const html = swatchDefs.map(([name, v]) => {
+    const raw = read(v);
+    return `<div class="sw"><i style="background:var(${v})"></i>
+      <div><div class="n">${name}</div><div class="h">${hex(raw) || raw}</div></div></div>`;
+  }).join('');
+  document.getElementById('swatches').innerHTML = html;
+  probe.remove();
+}
+document.getElementById('themeBtn').onclick = () => {
+  const root = document.documentElement;
+  const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  root.dataset.theme = next;
+  document.getElementById('themeLabel').textContent = next === 'dark' ? '浅色' : '深色';
+  paint();
+};
+paint();
+new MutationObserver(paint).observe(document.documentElement, { attributeFilter: ['data-theme'] });
+</script>
+</body>
+</html>
